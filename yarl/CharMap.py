@@ -1,4 +1,5 @@
 import pygame
+from Colors import *
 
 surfArrayAvailable = True
 try:
