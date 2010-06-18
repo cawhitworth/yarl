@@ -1,9 +1,15 @@
 import pygame
 import sys
-import numpy
 import os
 import platform
 import random
+
+surfArrayAvailable = True
+try:
+    import numpy
+except:
+    surfArrayAvailable = False
+    print "Warning: numpy not installed; startup speed may be very slow"
 
 from settings import *
 
@@ -18,8 +24,13 @@ class CharMap:
         self.black.fill(pygame.Color(0,0,0,0))
         self.chars = []
 
-        for char in range(0,255):
+        count = 10
+        print "Building tiles: ",
+        for char in range(0,256):
             self.chars.append([])
+            if char % 25 == 0:
+                print "%s... " % count,
+                count -= 1
             for color in Colors.colors():
                 c = pygame.Color(color)
                 mapPos = ( (char % 16) * self.charSize[0],
@@ -28,11 +39,22 @@ class CharMap:
 
                 tempSurface.fill(pygame.Color(0,0,0,0))
                 tempSurface.blit(self.image, (0,0), mapRect)
+                if surfArrayAvailable:
+                    surfAr= pygame.surfarray.pixels3d(tempSurface)
+                    mul = numpy.array( [ float(c.r) / 255.0, float(c.g) / 255.0, float(c.b) / 255.0] )
+                    surfAr *= mul
+                    del(surfAr)
+                else:
+                    tempSurface.lock()
+                    mul = ( float(c.r) / 255.0, float(c.g) / 255.0, float(c.b) / 255.0 )
+                    for y in range(0, self.charSize[0]):
+                        for x in range(0, self.charSize[1]):
+                            pixel = tempSurface.get_at((x,y))
+                            cl = (float(pixel.r), float(pixel.g), float(pixel.b))
+                            pixel = [ int( cl[ch] * mul[ch] ) for ch in range(0,3) ]
+                            tempSurface.set_at((x,y), pygame.Color(pixel[0], pixel[1], pixel[2], 0))
+                    tempSurface.unlock()
 
-                surfAr= pygame.surfarray.pixels3d(tempSurface)
-                mul = numpy.array( [ float(c.r) / 255.0, float(c.g) / 255.0, float(c.b) / 255.0] )
-                surfAr *= mul
-                del(surfAr)
                 surf = pygame.Surface(self.charSize, pygame.HWSURFACE)
                 surf.blit(tempSurface, (0,0))
                 surf.set_colorkey(pygame.Color(0,0,0,0))
