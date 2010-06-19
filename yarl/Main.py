@@ -10,7 +10,21 @@ import CharMap
 
 class YARL:
     def __init__(self):
-        pygame.init()
+
+        drivers = [SDL_VIDEODRIVER]
+        
+        if platform.system() == "Windows":
+            drivers.append("directx")
+            drivers.append("windib")
+
+        driver = self.initPygame(drivers)
+
+        if driver == None:
+            print "Unable to initialise a video driver"
+            sys.exit()
+
+        if driver != SDL_VIDEODRIVER:
+            print "Unable to initialise video driver '%s' - using '%s' instead" % (SDL_VIDEODRIVER, driver)
 
         transparent = pygame.Color( transparentColor )
         self.charMap = CharMap.CharMap(tileSet, transparent)
@@ -27,6 +41,16 @@ class YARL:
         self.r = random.Random()
 
         self.running = True
+        pygame.key.set_repeat(keyDelay, keyRepeat)
+
+    def initPygame(self, drivers):
+        for driver in drivers:
+            os.environ['SDL_VIDEODRIVER'] = driver
+            (ok,fail) = pygame.init()
+            if fail == 0:
+                return driver
+        return None
+
 
     def main(self):
         while self.running:
@@ -51,8 +75,12 @@ class YARL:
             pygame.display.flip()
     
     def moveCharacter(self, direction):
-        newPos = [ self.characterPos[0] + direction[0], 
-                   self.characterPos[1] + direction[1] ]
+        mods = pygame.key.get_mods()
+        multiplier = 1
+        if mods & controls["fastmove"]:
+            multiplier = 5
+        newPos = [ self.characterPos[0] + direction[0] * multiplier, 
+                   self.characterPos[1] + direction[1] * multiplier]
         if newPos[0] < 0:
             newPos[0] = 0
         if newPos[0] > screenSizeInTiles[0]-1:
