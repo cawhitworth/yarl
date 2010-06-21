@@ -7,6 +7,8 @@ import random
 from settings import *
 from Colors import *
 import CharMap
+import CharMapAppearance as Appearance
+import Map
 
 class YARL:
     def __init__(self):
@@ -35,6 +37,7 @@ class YARL:
         self.screen = pygame.display.set_mode(self.screenSize)
 
         self.characterPos = (0,0)
+        self.map = Map.Map((200,200), Appearance.AddAppearance)
 
         self.clock = pygame.time.Clock()
 
@@ -63,11 +66,8 @@ class YARL:
                     self.handleKey(event.key)
 
             self.screen.fill(pygame.Color(0,0,0,0))
-            greens = ( Colors.color(DARK, GREEN), Colors.color(NORMAL, GREEN), Colors.color(BRIGHT, GREEN))
-            for y in range(0, screenSizeInTiles[1]):
-                for x in range(0, screenSizeInTiles[0]):
-                    c = greens[(x+y)%3]
-                    self.charMap.drawChar(ord('.'), self.screen, gridpos = (x,y), color=c)
+            
+            self.charMap.renderMapSegment( self.screen, self.map, (0,0), (0,0,25,25))
             self.charMap.drawChar(ord('@'), self.screen, gridpos=self.characterPos, color=2)
 
             self.charMap.writeString("FPS %s" % int(fps), self.screen, gridpos=(0,2), blank = True)

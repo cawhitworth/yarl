@@ -1,8 +1,7 @@
+import Block
 
-
-
-def Map:
-    def __init__(self, dimensions):
+class Map:
+    def __init__(self, dimensions, appearance):
         self.size = dimensions
-        self.data = [ [ DirtBlock() ] * dimension[0] for i in range(dimensions[1]) ]
+        self.data = [ [ Block.Dirt(appearance) for j in range(dimensions[1]) ] for i in range(dimensions[0]) ]
 

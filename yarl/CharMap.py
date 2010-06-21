@@ -36,11 +36,13 @@ class CharMap:
 
                 tempSurface.fill(pygame.Color(0,0,0,0))
                 tempSurface.blit(self.image, (0,0), mapRect)
+
                 if surfArrayAvailable:
                     surfAr= pygame.surfarray.pixels3d(tempSurface)
                     mul = numpy.array( [ float(c.r) / 255.0, float(c.g) / 255.0, float(c.b) / 255.0] )
                     surfAr *= mul
                     del(surfAr)
+                
                 else:
                     tempSurface.lock()
                     mul = ( float(c.r) / 255.0, float(c.g) / 255.0, float(c.b) / 255.0 )
@@ -73,3 +75,14 @@ class CharMap:
         for char in string:
             self.drawChar(ord(char), surface, gridpos = gridpos, color = color, blank = blank)
             gridpos = ( gridpos[0]+1, gridpos[1] )
+
+    def renderMapSegment(self, surface, map, origin, region):
+        (screenX,screenY) = origin
+        for y in range(region[1], region[3]):
+            screenX = origin[0]
+            for x in range(region[0], region[2]):
+                block = map.data[x][y]
+                self.drawChar( block.appearance["character"], surface, gridpos = (screenX, screenY), 
+                               color = block.appearance["color"], blank = True )
+                screenX += 1
+            screenY += 1
