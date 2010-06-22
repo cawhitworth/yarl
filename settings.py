@@ -3,7 +3,7 @@ from pygame import *
 # Graphics settings
 
 tileSet = "Mkv_solidcurses_960x300.png"
-screenSizeInTiles = (80, 40)
+screenSizeInTiles = (80, 25)
 transparentColor = "#ff00ff"
 
 SDL_VIDEODRIVER = "windib"
@@ -23,3 +23,9 @@ controls = {
 
 keyDelay = 250
 keyRepeat = 100
+
+# Map scroll config
+
+mapSize = (200, 200)
+mapBorder = 5
+mapRenderSize = (60,25)
