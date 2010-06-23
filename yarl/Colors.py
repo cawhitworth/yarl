@@ -42,3 +42,10 @@ class Colors:
     @staticmethod
     def color(brightness, col):
         return brightness * len(Colors.baseColors) + col
+
+    @staticmethod
+    def darken(brightness):
+        if brightness == BRIGHT:
+            return NORMAL
+        elif brightness == NORMAL:
+            return DARK

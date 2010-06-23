@@ -20,6 +20,7 @@ class CharMap:
         self.black = pygame.Surface(self.charSize, pygame.HWSURFACE)
         self.black.fill(pygame.Color(0,0,0,0))
         self.chars = []
+        self.renderRegion = None
 
         count = 10
         print "Building tiles: ",
@@ -37,22 +38,23 @@ class CharMap:
                 tempSurface.fill(pygame.Color(0,0,0,0))
                 tempSurface.blit(self.image, (0,0), mapRect)
 
-                if surfArrayAvailable:
-                    surfAr= pygame.surfarray.pixels3d(tempSurface)
-                    mul = numpy.array( [ float(c.r) / 255.0, float(c.g) / 255.0, float(c.b) / 255.0] )
-                    surfAr *= mul
-                    del(surfAr)
-                
-                else:
-                    tempSurface.lock()
-                    mul = ( float(c.r) / 255.0, float(c.g) / 255.0, float(c.b) / 255.0 )
-                    for y in range(0, self.charSize[0]):
-                        for x in range(0, self.charSize[1]):
-                            pixel = tempSurface.get_at((x,y))
-                            cl = (float(pixel.r), float(pixel.g), float(pixel.b))
-                            pixel = [ int( cl[ch] * mul[ch] ) for ch in range(0,3) ]
-                            tempSurface.set_at((x,y), pygame.Color(pixel[0], pixel[1], pixel[2], 0))
-                    tempSurface.unlock()
+                if char >= 32 and char < 128:
+                    if surfArrayAvailable:
+                        surfAr= pygame.surfarray.pixels3d(tempSurface)
+                        mul = numpy.array( [ float(c.r) / 255.0, float(c.g) / 255.0, float(c.b) / 255.0] )
+                        surfAr *= mul
+                        del(surfAr)
+                    
+                    else:
+                        tempSurface.lock()
+                        mul = ( float(c.r) / 255.0, float(c.g) / 255.0, float(c.b) / 255.0 )
+                        for y in range(0, self.charSize[0]):
+                            for x in range(0, self.charSize[1]):
+                                pixel = tempSurface.get_at((x,y))
+                                cl = (float(pixel.r), float(pixel.g), float(pixel.b))
+                                pixel = [ int( cl[ch] * mul[ch] ) for ch in range(0,3) ]
+                                tempSurface.set_at((x,y), pygame.Color(pixel[0], pixel[1], pixel[2], 0))
+                        tempSurface.unlock()
 
                 surf = pygame.Surface(self.charSize, pygame.HWSURFACE)
                 surf.blit(tempSurface, (0,0))
@@ -78,11 +80,31 @@ class CharMap:
 
     def renderMapSegment(self, surface, map, origin, region):
         (screenX,screenY) = origin
+        if self.renderRegion != region:
+            print region
+            self.renderRegion = region
         for y in range(region[1], region[3]):
             screenX = origin[0]
             for x in range(region[0], region[2]):
                 block = map.data[x][y]
-                self.drawChar( block.appearance["character"], surface, gridpos = (screenX, screenY), 
-                               color = block.appearance["color"], blank = True )
+                color = list(block.appearance["color"])
+                char = block.appearance["character"]
+
+                if block.visibility == 0:
+                    screenX += 1
+                    continue
+                elif block.visibility == 1:
+                    color[0] = DARK
+                    char = ord('.')
+                elif block.visibility == 2:
+                    if color[0] == DARK:
+                        screenX += 1
+                        continue
+                    color[0] = Colors.darken(color[0])
+
+                col = Colors.color(color[0], color[1])
+
+                self.drawChar( char, surface, gridpos = (screenX, screenY), 
+                               color = col, blank = True )
                 screenX += 1
             screenY += 1

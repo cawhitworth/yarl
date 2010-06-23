@@ -26,6 +26,6 @@ keyRepeat = 100
 
 # Map scroll config
 
-mapSize = (200, 200)
+mapSize = (200, 100)
 mapBorder = 5
 mapRenderSize = (60,25)

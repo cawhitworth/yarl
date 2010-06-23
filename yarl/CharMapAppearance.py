@@ -34,13 +34,13 @@ appearances = {
         },
         Block.ROUGH_WALL : {
             colors :
-                ( (NORMAL, BROWN) ),
+                ( (NORMAL, BROWN), ),
             characters :
                 ( "#" )
         },
         Block.SMOOTH_WALL : {
             colors :
-                ( (NORMAL, GREY) ),
+                ( (NORMAL, GREY), ),
             characters :
                 ( "#" )
         }
@@ -54,5 +54,5 @@ def AddAppearance(block):
     chars = appearance[characters]
     color = cols[ r.randint(0, len(cols)-1) ]
     character = chars[ r.randint(0, len(chars)-1) ]
-    block.appearance["color"] = Colors.color(color[0], color[1])
+    block.appearance["color"] = color
     block.appearance["character"] = ord(character)

@@ -10,6 +10,8 @@ class Block:
         self.passable = passable
         self.description = description
         self.appearance = {}
+        self.visibility = 0
+        self.highlight = False
         appearance(self)
 
 class Dirt(Block):
@@ -21,7 +23,7 @@ class Dirt(Block):
         )
 
 class DirtFloor(Block):
-    def __init__(self):
+    def __init__(self, appearance):
         Block.__init__(self,
                 DIRT_FLOOR, 
                 "dirt floor",
@@ -30,7 +32,7 @@ class DirtFloor(Block):
         )
 
 class StoneFloor(Block):
-    def __init__(self):
+    def __init__(self, appearance):
         Block.__init__(self,
                 STONE_FLOOR,
                 "stone floor",
@@ -39,7 +41,7 @@ class StoneFloor(Block):
         )
 
 class RoughWall(Block):
-    def __init__(self):
+    def __init__(self, appearance):
         Block.__init__(self,
                 ROUGH_WALL,
                 "rough wall",
@@ -48,7 +50,7 @@ class RoughWall(Block):
         )
 
 class SmoothWall(Block):
-    def __init__(self):
+    def __init__(self, appearance):
         Block.__init__(self,
                 SMOOTH_WALL,
                 "smooth wall",
