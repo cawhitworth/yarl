@@ -1,24 +1,44 @@
 import math
 import Block
+import Entity
 
 class Map:
     def __init__(self, dimensions, appearance):
         self.size = dimensions
         self.data = [ ]
+        self.appearance = appearance
         for x in range(dimensions[0]):
             self.data.append( [] )
             for y in range(dimensions[1]):
                 self.data[x].append(Block.Dirt(appearance))
 
-        (cx,cy) = (40, 14)
-        for x in range(30, 50):
-            for y in range(4,24):
+        self.addDungeonHeart((20, 14))
+
+
+    def addDungeonHeart(self, location):
+        self.dungeonHeart = Entity.manager.construct(Entity.DungeonHeart, self.appearance)
+        
+        (cx,cy) = location
+
+        for x in range(cx-20, cx+20):
+            if x < 0 or x > self.size[0]:
+                continue
+            for y in range(cy-20, cy+20):
+                if y < 0 or y > self.size[1]:
+                    continue
                 d = int(math.sqrt(math.pow(float(x - cx), 2.0) +
                                   math.pow(float(y - cy), 2.0)))
-                if d > 6 and d < 10:
+                if x != cx and y != cy and (d == 2 or d == 3):
+                    self.data[x][y] = Block.LavaMoat(self.appearance)
+                elif d < 6:
+                    self.data[x][y] = Block.StoneFloor(self.appearance)
+                elif d < 10:
+                    self.data[x][y] = Block.DirtFloor(self.appearance)
+                if d > 10 and d < 15:
                     self.data[x][y].visibility = 1
-                elif d > 3 and d <= 6:
+                elif d > 3 and d <= 10:
                     self.data[x][y].visibility = 2
                 elif d <= 3:
                     self.data[x][y].visibility = 3
 
+        self.data[cx][cy].entities.append(self.dungeonHeart)

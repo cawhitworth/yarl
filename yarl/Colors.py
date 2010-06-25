@@ -1,3 +1,5 @@
+from settings import *
+
 BLACK=0
 WHITE=1
 RED=2
@@ -27,13 +29,21 @@ class Colors:
         (0.5, 0.5, 0.5)
     ]
 
+    baseColorsBW = [
+        (0.0, 0.0, 0.0),
+        (1.0, 1.0, 1.0)
+    ]
+
     brightnessMult = [ 0.66, 0.33, 1.0 ]
 
     @staticmethod
     def colors():
         c = []
+        baseColors = Colors.baseColors
+        if blackandwhite:
+            baseColors = Colors.baseColorsBW
         for brightness in Colors.brightnessMult:
-            for color in Colors.baseColors:
+            for color in baseColors:
                 col = [ int(channel * brightness *255) for channel in color ]
                 colStr = "#" + "".join(["%02x" % channel for channel in col])
                 c.append(colStr)
@@ -41,6 +51,11 @@ class Colors:
 
     @staticmethod
     def color(brightness, col):
+        if blackandwhite:
+            if col == BLACK:
+                return 0
+            else:
+                return brightness * len(Colors.baseColorsBW) + 1
         return brightness * len(Colors.baseColors) + col
 
     @staticmethod

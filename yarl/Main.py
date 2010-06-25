@@ -43,6 +43,8 @@ class YARL:
 
         self.r = random.Random()
 
+        self.cursorChar = ord('X')
+        self.cursorColor = Colors.color(BRIGHT, RED)
         self.running = True
         pygame.key.set_repeat(keyDelay, keyRepeat)
 
@@ -72,7 +74,7 @@ class YARL:
             self.screen.fill(pygame.Color(0,0,0,0))
             
             self.charMap.renderMapSegment( self.screen, self.map, (0,0), self.mapRect(self.mapOrigin) )
-            self.charMap.drawChar(ord('@'), self.screen, gridpos=self.characterPos, color=2)
+            self.charMap.drawChar(self.cursorChar, self.screen, gridpos=self.characterPos, color=self.cursorColor)
 
             self.charMap.writeString("FPS %s" % int(fps), self.screen, gridpos=(0,2), blank = True)
             self.charMap.writeString("Cursor %s" % ( map(lambda a,b:a+b, self.characterPos, self.mapOrigin) ), self.screen, gridpos=(0,3), blank=True)

@@ -6,6 +6,10 @@ tileSet = "Mkv_solidcurses_960x300.png"
 screenSizeInTiles = (80, 25)
 transparentColor = "#ff00ff"
 
+# Turning this on will speed startup considerably on slower machines
+# at the expense of making everything B&W
+blackandwhite = False
+
 SDL_VIDEODRIVER = "windib"
 
 # Keyboard configuration

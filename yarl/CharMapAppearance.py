@@ -1,4 +1,5 @@
 import Block
+import Entity
 from Colors import *
 import random
 
@@ -43,6 +44,19 @@ appearances = {
                 ( (NORMAL, GREY), ),
             characters :
                 ( "#" )
+        },
+        Block.LAVA_MOAT : {
+            colors:
+                ( (DARK, RED), (NORMAL, RED), (BRIGHT, RED),
+                  (NORMAL, YELLOW), (BRIGHT, YELLOW) ),
+            characters:
+                ( "~" )
+        },
+        Entity.DUNGEON_HEART : {
+            colors:
+                ( (BRIGHT, RED), ),
+            characters:
+                ( "H" )
         }
     }
 
