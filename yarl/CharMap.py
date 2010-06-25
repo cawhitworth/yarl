@@ -113,7 +113,7 @@ class CharMap:
                     col = Colors.color(color[0], color[1])
 
                     self.drawChar( char, surface, gridpos = (screenX, screenY), 
-                                   color = col, blank = True )
+                                   color = col )
 
                 screenX += 1
             screenY += 1

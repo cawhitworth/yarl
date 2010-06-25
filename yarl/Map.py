@@ -30,10 +30,13 @@ class Map:
                                   math.pow(float(y - cy), 2.0)))
                 if x != cx and y != cy and (d == 2 or d == 3):
                     self.data[x][y] = Block.LavaMoat(self.appearance)
-                elif d < 6:
+                elif d < 4:
                     self.data[x][y] = Block.StoneFloor(self.appearance)
-                elif d < 10:
+                elif d < 6:
                     self.data[x][y] = Block.DirtFloor(self.appearance)
+                elif d == 6:
+                    self.data[x][y] = Block.RoughWall(self.appearance)
+
                 if d > 10 and d < 15:
                     self.data[x][y].visibility = 1
                 elif d > 3 and d <= 10:

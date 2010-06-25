@@ -76,8 +76,20 @@ class YARL:
             self.charMap.renderMapSegment( self.screen, self.map, (0,0), self.mapRect(self.mapOrigin) )
             self.charMap.drawChar(self.cursorChar, self.screen, gridpos=self.characterPos, color=self.cursorColor)
 
-            self.charMap.writeString("FPS %s" % int(fps), self.screen, gridpos=(0,2), blank = True)
-            self.charMap.writeString("Cursor %s" % ( map(lambda a,b:a+b, self.characterPos, self.mapOrigin) ), self.screen, gridpos=(0,3), blank=True)
+            (mapx, mapy) = map(lambda a,b:a+b, self.characterPos, self.mapOrigin)
+            if self.map.data[mapx][mapy].visibility < 2:
+                self.charMap.writeString("[hidden]", self.screen, gridpos = (61,1) )
+            else:
+                self.charMap.writeString(self.map.data[mapx][mapy].description,
+                        self.screen, gridpos = (61,1) )
+                y = 2
+                for entity in self.map.data[mapx][mapy].entities:
+                    self.charMap.writeString(entity.description, self.screen,
+                            gridpos = (61,y) )
+                    y += 1
+
+            self.charMap.writeString("FPS %s" % int(fps), self.screen, gridpos=(61,24))
+            self.charMap.writeString("Cursor %s" % ( map(lambda a,b:a+b, self.characterPos, self.mapOrigin) ), self.screen, gridpos=(61,23))
             pygame.display.flip()
     
     def moveCharacter(self, direction):
