@@ -1,3 +1,5 @@
+import Jobs
+
 BLOCK_BASE = 0
 
 DIRT            = 0x00 | BLOCK_BASE
@@ -9,7 +11,7 @@ SMOOTH_WALL     = 0x04 | BLOCK_BASE
 LAVA_MOAT       = 0x80 | BLOCK_BASE
 
 class Block:
-    def __init__(self, type, description, appearance, passable = False):
+    def __init__(self, type, description, appearance, passable = False, jobs = []):
         self.type = type
         self.passable = passable
         self.description = description
@@ -17,6 +19,7 @@ class Block:
         self.visibility = 0
         self.highlight = False
         self.entities = []
+        self.jobsAllowed = jobs
         appearance(self)
 
     def isPassable(self):
@@ -26,12 +29,16 @@ class Block:
             passable = passable & entity.passable
         return passable
 
+    def canHaveJob(self, jobType):
+        return jobType in self.jobsAllowed
+
 class Dirt(Block):
     def __init__(self, appearance):
         Block.__init__(self,
                 DIRT,
                 "dirt",
-                appearance
+                appearance,
+                jobs = ( Jobs.EXCAVATE, )
         )
 
 class DirtFloor(Block):
@@ -58,7 +65,7 @@ class RoughWall(Block):
                 ROUGH_WALL,
                 "rough wall",
                 appearance,
-                passable = True
+                jobs = ( Jobs.EXCAVATE, )
         )
 
 class SmoothWall(Block):
@@ -67,7 +74,7 @@ class SmoothWall(Block):
                 SMOOTH_WALL,
                 "smooth wall",
                 appearance,
-                passable = True
+                jobs = ( Jobs.EXCAVATE, )
         )
 
 class LavaMoat(Block):

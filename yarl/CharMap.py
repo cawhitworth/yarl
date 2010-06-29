@@ -19,6 +19,8 @@ class CharMap:
         tempSurface = pygame.Surface(self.charSize, pygame.HWSURFACE)
         self.black = pygame.Surface(self.charSize, pygame.HWSURFACE)
         self.black.fill(pygame.Color(0,0,0,0))
+        self.highlight = pygame.Surface(self.charSize, pygame.HWSURFACE)
+        self.highlight.fill(pygame.Color(200,200,0,0))
         self.chars = []
         self.renderRegion = None
 
@@ -61,6 +63,16 @@ class CharMap:
                 surf.set_colorkey(pygame.Color(0,0,0,0))
                 self.chars[char].append(surf)
 
+    def drawHighlight(self, surface, gridpos = None, screenpos = None):
+        position = (0,0)
+        if gridpos:
+            position = ( gridpos[0] * self.charSize[0],
+                         gridpos[1] * self.charSize[1] )
+        else:
+            position = screenpos
+        
+        surface.blit(self.highlight, position)
+
     def drawChar(self, char, surface, gridpos = None, screenpos = None, color=1, blank = False):
         position = (0,0)
         if gridpos:
@@ -88,12 +100,14 @@ class CharMap:
             for x in range(region[0], region[2]):
                 block = map.data[x][y]
 
+                if block.highlight:
+                    self.drawHighlight(surface, gridpos = (screenX, screenY))
                 if len(block.entities) > 0:
                     entity = block.entities[-1]
                     col = list(entity.appearance["color"])
                     char = entity.appearance["character"]
                     self.drawChar( char, surface, gridpos = (screenX, screenY),
-                                   color = Colors.color(col[0], col[1]), blank = True)
+                                   color = Colors.color(col[0], col[1]))
                 else:
                     color = list(block.appearance["color"])
                     char = block.appearance["character"]

@@ -9,6 +9,7 @@ from Colors import *
 import CharMap
 import CharMapAppearance as Appearance
 import Map
+import Jobs
 
 class YARL:
     def __init__(self):
@@ -35,16 +36,17 @@ class YARL:
         
         self.screen = pygame.display.set_mode(self.screenSize)
 
-        self.characterPos = tuple(map(lambda x: x/2, screenSizeInTiles))
         self.map = Map.Map(mapSize, Appearance.AddAppearance)
-
         self.mapOrigin = [ 0, 0 ]
-        self.clock = pygame.time.Clock()
 
-        self.r = random.Random()
-
+        self.characterPos = tuple(map(lambda x: x/2, screenSizeInTiles))
+        self.cursorMapPos = map(lambda a,b:a+b, self.characterPos, self.mapOrigin) 
         self.cursorChar = ord('X')
         self.cursorColor = Colors.color(BRIGHT, RED)
+        
+        self.clock = pygame.time.Clock()
+        self.r = random.Random()
+
         self.running = True
         pygame.key.set_repeat(keyDelay, keyRepeat)
 
@@ -77,19 +79,26 @@ class YARL:
             self.charMap.drawChar(self.cursorChar, self.screen, gridpos=self.characterPos, color=self.cursorColor)
 
             (mapx, mapy) = map(lambda a,b:a+b, self.characterPos, self.mapOrigin)
+            y = 1
             if self.map.data[mapx][mapy].visibility < 2:
-                self.charMap.writeString("[hidden]", self.screen, gridpos = (61,1) )
+                self.charMap.writeString("[hidden]", self.screen, gridpos = (61,y) )
+                y += 1
             else:
                 self.charMap.writeString(self.map.data[mapx][mapy].description,
-                        self.screen, gridpos = (61,1) )
-                y = 2
+                        self.screen, gridpos = (61,y) )
+                y += 1
                 for entity in self.map.data[mapx][mapy].entities:
                     self.charMap.writeString(entity.description, self.screen,
                             gridpos = (61,y) )
                     y += 1
-
+            
             self.charMap.writeString("FPS %s" % int(fps), self.screen, gridpos=(61,24))
-            self.charMap.writeString("Cursor %s" % ( map(lambda a,b:a+b, self.characterPos, self.mapOrigin) ), self.screen, gridpos=(61,23))
+            self.charMap.writeString("%s" % self.cursorMapPos, self.screen, gridpos=(61, y))
+            y+=1
+            for job in Jobs.manager.jobsAt(self.cursorMapPos):
+                self.charMap.writeString(job.description, self.screen, gridpos=(61,y))
+                y += 1
+            
             pygame.display.flip()
     
     def moveCharacter(self, direction):
@@ -169,7 +178,18 @@ class YARL:
             destination[1] = mapRenderSize[1]-1
 
         self.characterPos = destination
+        self.cursorMapPos = map(lambda a,b:a+b, self.characterPos, self.mapOrigin) 
 
+    def toggleDig(self, position):
+        (x,y) = position
+        if not self.map.data[x][y].canHaveJob(Jobs.EXCAVATE):
+            return
+        self.map.data[x][y].highlight = not self.map.data[x][y].highlight
+        if self.map.data[x][y].highlight:
+            Jobs.manager.newJob(Jobs.EXCAVATE, position)
+        else:
+            Jobs.manager.popJobOfTypeAt(Jobs.EXCAVATE, position)
+        
 
     def handleKey(self, key):
         if key == controls["quit"]:
@@ -182,6 +202,12 @@ class YARL:
             self.moveCharacter((-1,0))
         elif key == controls["right"]:
             self.moveCharacter((1,0))
+        elif key == controls["excavate"]:
+            self.toggleDig(self.cursorMapPos)
+        elif key == controls["dumpstatus"]:
+            Jobs.manager.dump()
+
+
 
 
 
