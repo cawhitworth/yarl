@@ -57,6 +57,12 @@ appearances = {
                 ( (BRIGHT, RED), ),
             characters:
                 ( "H" )
+        },
+        Entity.IMP : {
+            colors:
+                ( (DARK, GREEN), (NORMAL, GREEN), (BRIGHT, GREEN) ),
+            characters:
+                ( "i" )
         }
     }
 

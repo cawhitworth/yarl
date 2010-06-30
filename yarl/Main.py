@@ -10,6 +10,7 @@ import CharMap
 import CharMapAppearance as Appearance
 import Map
 import Jobs
+import Entity
 
 class YARL:
     def __init__(self):
@@ -72,6 +73,8 @@ class YARL:
                     sys.exit()
                 elif event.type == pygame.KEYDOWN:
                     self.handleKey(event.key)
+
+            Entity.manager.update(self.clock.get_time())
 
             self.screen.fill(pygame.Color(0,0,0,0))
             
@@ -184,6 +187,9 @@ class YARL:
         (x,y) = position
         if not self.map.data[x][y].canHaveJob(Jobs.EXCAVATE):
             return
+        if not self.map.data[x][y].visibility > 1:
+            return
+
         self.map.data[x][y].highlight = not self.map.data[x][y].highlight
         if self.map.data[x][y].highlight:
             Jobs.manager.newJob(Jobs.EXCAVATE, position)

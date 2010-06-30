@@ -1,6 +1,7 @@
 import math
 import Block
 import Entity
+import Imp
 
 class Map:
     def __init__(self, dimensions, appearance):
@@ -13,10 +14,15 @@ class Map:
                 self.data[x].append(Block.Dirt(appearance))
 
         self.addDungeonHeart((20, 14))
+        self.imps = []
+        self.imps.append(Imp.Imp(appearance, self, (20,13)))
+        self.imps.append(Imp.Imp(appearance, self, (20,15)))
+        self.imps.append(Imp.Imp(appearance, self, (19,14)))
+        self.imps.append(Imp.Imp(appearance, self, (21,14)))
 
 
     def addDungeonHeart(self, location):
-        self.dungeonHeart = Entity.manager.construct(Entity.DungeonHeart, self.appearance)
+        self.dungeonHeart = Entity.DungeonHeart(self.appearance, self, location)
         
         (cx,cy) = location
 
