@@ -3,6 +3,10 @@ import Block
 import Entity
 import Imp
 
+def h(loc, dest):
+    # Use manhattan distances for the moment - probably suboptimal but will do
+    return 1.01 * (abs(dest[0]-loc[0]) + abs(dest[1]-loc[1]))
+
 class Map:
     def __init__(self, dimensions, appearance):
         self.size = dimensions
@@ -51,3 +55,89 @@ class Map:
                     self.data[x][y].visibility = 3
 
         self.data[cx][cy].entities.append(self.dungeonHeart)
+
+    # An a* routing algorithm
+    # We use a second map of nodes (which I guess could really be part of the main map, but would
+    # need resetting after every search, so unless performance is truly terrible, I'm not too
+    # worried for now)
+    def route(self, start, end):
+        class Node:
+            def __init__(self, loc, g, parent, end):
+                self.loc = loc
+                self.g = g
+                self.parent = parent
+                if end != None:
+                    self.h = h(loc, end)
+                else:
+                    self.h = None
+                self.passable = True
+                self.explored = False
+                self.onRoute = False
+
+            def f(self):
+                return self.g + self.h
+
+            @staticmethod
+            def findLowest(openset):
+                lowest = 1000000000
+                lowestNode = None
+                for n in openset:
+                    if n.f() < lowest:
+                        lowest = n.f()
+                        lowestNode = n
+                return lowestNode
+
+            @staticmethod
+            def neighbours(nodemap, node, map):
+                deltas = ( (1,0), (0,1), (-1,0), (0,-1) )
+                results = set()
+                (cx,cy) = node.loc
+                (width, height) = ( len(nodemap), len(nodemap[0]) )
+                for d in deltas:
+                    x = cx + d[0]
+                    y = cy + d[1]
+                    if x >= 0 and x < width and\
+                       y >= 0 and y < height and\
+                       map[x][y].isPassable():
+                           results.add( nodemap[x][y] )
+                return results
+
+        (startx, starty) = start
+        open = set()
+        closed = set()
+        nodemap = []
+        for x in range(self.size[0]):
+            nodemap.append([])
+            for y in range(self.size[1]):
+                nodemap[x].append(Node( self, (x,y), -1, None, end) )
+
+        nodemap[startx][starty].g = 0
+        open.add(nodemap[startx][starty])
+
+        lowest = Node.findLowest(open)
+        while lowest.loc != end:
+            current = lowest
+            open.remove(current)
+            closed.add(current)
+            for neighbour in Node.neighbours(nodemap, current, self.map):
+                cost = current.g + 1
+
+                if neighbour in open and cost < neighbour.g:
+                    open.remove(neighbour)
+                if neighbour in closed and cost < neighbour.g:
+                    closed.remove(neighbour)
+                if neighbour not in open and neighbour not in closed:
+                    neighbour.g = cost
+                    open.add(neighbour)
+
+            lowest = Node.findLowest(open)
+
+        route = []
+        loc = end
+        while loc != start:
+            route.append(loc)
+            loc = nodemap[x][y].parent.loc
+
+        route.reverse()
+        return route
+            

@@ -1,6 +1,7 @@
 # A* search
 
 import random
+import time
 
 def h(loc, dest):
     return 1.01 * (abs( dest[0] - loc[0] ) + abs( dest[1] - loc[1] ))
@@ -42,68 +43,81 @@ def neighbours(node, map):
             result.add( map[x][y] )
     return result
 
-width =20 
-height = 20
+width = 200 
+height = 200
 
-map = []
+mapBuild = 0
+routeFound = 0
+iters = 100
+for iter in range(iters):
+    startTime = time.time()
 
-start = (0,0)
-(sx,sy) = start 
-end = (width-1, height-1)
+    map = []
+    start = (0,0)
+    (sx,sy) = start 
+    end = (width-1, height-1)
 
-for x in range(width):
-    map.append([])
-    for y in range(height):
-        map[x].append(Node( (x,y), -1, None, end) )
+    for x in range(width):
+        map.append([])
+        for y in range(height):
+            map[x].append(Node( (x,y), -1, None, end) )
 
-r = random.Random()
+    r = random.Random()
 
-for i in range(50):
-    x = r.randint(0,width-1)
-    y = r.randint(0,height-1)
-    map[x][y].passable = False
-map[width-1][height-1].passable = True
-open = set()
-closed = set()
+    for i in range((width + height) / 4):
+        x = r.randint(0,width-1)
+        y = r.randint(0,height-1)
+        map[x][y].passable = False
+    map[width-1][height-1].passable = True
+    open = set()
+    closed = set()
 
-map[sx][sy].g = 0
+    map[sx][sy].g = 0
 
-open.add(map[sx][sy])
-
-lowest = findLowest(open)
-
-while lowest.loc != end:
-    current = lowest
-    open.remove(current)
-    closed.add(current)
-    for neighbour in neighbours(current, map):
-        neighbour.explored = True
-        cost = current.g + 1
-        if neighbour in open and cost < neighbour.g:
-            open.remove(neighbour)
-        if neighbour in closed and cost < neighbour.g:
-            closed.remove(neighbour)
-        if neighbour not in open and neighbour not in closed:
-            neighbour.g = cost
-            open.add(neighbour)
-            neighbour.parent = current
+    open.add(map[sx][sy])
 
     lowest = findLowest(open)
 
-loc = end
-while loc != start:
-    (x,y) = loc
-    map[x][y].onRoute = True
-    loc = map[x][y].parent.loc
+    mapBuild += time.time() - startTime
 
-for y in range(height):
-    print
-    for x in range(width):
-        if map[x][y].onRoute:
-            print "*",
-        elif map[x][y].explored:
-            print ":",
-        elif map[x][y].passable:
-            print ".",
-        else:
-            print "X",
+    while lowest.loc != end:
+        current = lowest
+        open.remove(current)
+        closed.add(current)
+        for neighbour in neighbours(current, map):
+            neighbour.explored = True
+            cost = current.g + 1
+            if neighbour in open and cost < neighbour.g:
+                open.remove(neighbour)
+            if neighbour in closed and cost < neighbour.g:
+                closed.remove(neighbour)
+            if neighbour not in open and neighbour not in closed:
+                neighbour.g = cost
+                open.add(neighbour)
+                neighbour.parent = current
+
+        lowest = findLowest(open)
+
+    loc = end
+    while loc != start:
+        (x,y) = loc
+        map[x][y].onRoute = True
+        loc = map[x][y].parent.loc
+
+    routeFound += time.time() - startTime
+
+#
+#for y in range(height):
+#    print
+#    for x in range(width):
+#        if map[x][y].onRoute:
+#            print "*",
+#        elif map[x][y].explored:
+#            print ":",
+#        elif map[x][y].passable:
+#            print ".",
+#        else:
+#            print "X",
+
+print "Map build: %ss" % (mapBuild*1000 / iters)
+print "Route find: %ss" % (routeFound*1000 / iters)

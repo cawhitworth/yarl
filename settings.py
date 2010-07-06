@@ -3,7 +3,7 @@ from pygame import *
 # Graphics settings
 
 tileSet = "Mkv_solidcurses_960x300.png"
-screenSizeInTiles = (80, 25)
+screenSizeInTiles = (80, 40)
 transparentColor = "#ff00ff"
 
 # Turning this on will speed startup considerably on slower machines
@@ -34,4 +34,4 @@ keyRepeat = 100
 
 mapSize = (200, 100)
 mapBorder = 5
-mapRenderSize = (60,25)
+mapRenderSize = (60,40)
