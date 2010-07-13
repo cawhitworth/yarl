@@ -10,7 +10,7 @@ transparentColor = "#ff00ff"
 # at the expense of making everything B&W
 blackandwhite = False
 
-SDL_VIDEODRIVER = "windib"
+SDL_VIDEODRIVER = ""
 
 # Keyboard configuration
 

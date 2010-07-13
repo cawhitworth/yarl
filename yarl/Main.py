@@ -18,8 +18,11 @@ class YARL:
         drivers = [SDL_VIDEODRIVER]
         
         if platform.system() == "Windows":
-            drivers.append("directx")
             drivers.append("windib")
+            drivers.append("directx")
+        if platform.system() == "Linux":
+            drivers.append("x11")
+            drivers.append("fbcon")
 
         driver = self.initPygame(drivers)
 
