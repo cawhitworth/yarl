@@ -1,5 +1,6 @@
 import pygame
 from Colors import *
+import Jobs
 
 surfArrayAvailable = True
 try:
@@ -23,6 +24,8 @@ class CharMap:
         self.highlight.fill(pygame.Color(200,200,0,0))
         self.chars = []
         self.renderRegion = None
+        self.frame = 0
+        self.drawFlashing = True
 
         count = 10
         print "Building tiles: ",
@@ -91,6 +94,11 @@ class CharMap:
             gridpos = ( gridpos[0]+1, gridpos[1] )
 
     def renderMapSegment(self, surface, map, origin, region):
+        self.frame += 1
+        if self.frame == 10:
+            self.frame = 0
+            self.drawFlashing = not self.drawFlashing
+
         (screenX,screenY) = origin
         if self.renderRegion != region:
             print region
@@ -100,8 +108,20 @@ class CharMap:
             for x in range(region[0], region[2]):
                 block = map.data[x][y]
 
-                if block.highlight:
-                    self.drawHighlight(surface, gridpos = (screenX, screenY))
+                if Jobs.manager.sparseJobMap.has_key((x,y)):
+                    highlight = 0
+                    for job in Jobs.manager.sparseJobMap[(x,y)]:
+                        if job.type == Jobs.EXCAVATE and job in Jobs.manager.jobs:
+                            highlight = 1
+                        elif job.type == Jobs.EXCAVATE and job in Jobs.manager.inProgressJobs:
+                            highlight = 2
+
+                    if highlight == 1:
+                        self.drawHighlight(surface, gridpos = (screenX, screenY))
+                    elif highlight == 2 and self.drawFlashing:
+                        self.drawHighlight(surface, gridpos = (screenX, screenY))
+
+
                 if len(block.entities) > 0:
                     entity = block.entities[-1]
                     col = list(entity.appearance["color"])

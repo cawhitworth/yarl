@@ -5,6 +5,7 @@ class Job:
         self.location = location
         self.type = type
         self.description = description
+        self.cancelled = False
 
 class Excavate(Job):
     def __init__(self, location):
@@ -17,6 +18,7 @@ jobFactory = {
 class Manager:
     def __init__(self):
         self.jobs = set()
+        self.inProgressJobs = set()
         self.sparseJobMap = {}
 
     def newJob(self, jobType, location):
@@ -29,26 +31,43 @@ class Manager:
         self.sparseJobMap[location].append(j)
         return j
 
-    def pullJob(self, job):
+    def takeJob(self, job):
         if not job in self.jobs:
             return None
         self.jobs.remove(job)
-        self.sparseJobMap[job.location].remove(job)
+        self.inProgressJobs.add(job)
         return job
+
+    def jobComplete(self,job):
+        self.removeJob(job)
 
     def popJobAt(self, location):
         location = tuple(location)
         j = self.sparseJobMap[location].pop(0)
-        self.jobs.remove(j)
+        if j in self.jobs:
+            self.jobs.remove(j)
+        if j in self.inProgressJobs:
+            self.inProgressJobs.remove(j)
         return j
 
     def popJobOfTypeAt(self, jobType, location):
         location = tuple(location)
+        if not self.sparseJobMap.has_key(location):
+            return None
         for job in self.sparseJobMap[location]:
             if job.type == jobType:
-                self.jobs.remove(job)
-                self.sparseJobMap[location].remove(job)
+                self.removeJob(job)
                 return job
+        return None
+
+    def removeJob(self, job):
+        if job not in self.jobs and job not in self.inProgressJobs:
+            return None
+        if job in self.jobs:
+            self.jobs.remove(job)
+        if job in self.inProgressJobs:
+            self.inProgressJobs.remove(job)
+        self.sparseJobMap[job.location].remove(job)
 
     def jobsAt(self, location):
         location = tuple(location)

@@ -56,6 +56,29 @@ class Map:
 
         self.data[cx][cy].entities.append(self.dungeonHeart)
 
+    # This function works on the basis that our entire map must be connected
+    # Thus, if any square has empty space next to it, it must be routeable from
+    # any other point on the map
+
+    def isRouteable(self, loc):
+        (cx,cy) = loc
+        for dy in (-1,0,1):
+            y = cy + dy
+            if y < 0 or y >= self.size[1]:
+                continue
+            for dx in (-1,0,1):
+                x = cx + dx
+                if x < 0 or x >= self.size[0]:
+                    continue
+                if dx != 0 and dy != 0: # This can change once I lift the manhattan movement restriction
+                    continue
+                if dx == 0 and dy == 0:
+                    continue
+                if self.data[x][y].isPassable():
+                    return True
+        return False
+
+
     # An a* routing algorithm
     # We use a second map of nodes (which I guess could really be part of the main map, but would
     # need resetting after every search, so unless performance is truly terrible, I'm not too
@@ -88,7 +111,7 @@ class Map:
                 return lowestNode
 
             @staticmethod
-            def neighbours(nodemap, node, map):
+            def neighbours(nodemap, node, map, end):
                 deltas = ( (1,0), (0,1), (-1,0), (0,-1) )
                 results = set()
                 (cx,cy) = node.loc
@@ -100,6 +123,8 @@ class Map:
                        y >= 0 and y < height and\
                        map[x][y].isPassable():
                            results.add( nodemap[x][y] )
+                    if end == (x,y):
+                        results.add( nodemap[x][y] )
                 return results
 
         (startx, starty) = start
@@ -109,7 +134,7 @@ class Map:
         for x in range(self.size[0]):
             nodemap.append([])
             for y in range(self.size[1]):
-                nodemap[x].append(Node( self, (x,y), -1, None, end) )
+                nodemap[x].append(Node( (x,y), -1, None, end) )
 
         nodemap[startx][starty].g = 0
         open.add(nodemap[startx][starty])
@@ -119,7 +144,7 @@ class Map:
             current = lowest
             open.remove(current)
             closed.add(current)
-            for neighbour in Node.neighbours(nodemap, current, self.map):
+            for neighbour in Node.neighbours(nodemap, current, self.data, end):
                 cost = current.g + 1
 
                 if neighbour in open and cost < neighbour.g:
@@ -129,6 +154,7 @@ class Map:
                 if neighbour not in open and neighbour not in closed:
                     neighbour.g = cost
                     open.add(neighbour)
+                    neighbour.parent = current
 
             lowest = Node.findLowest(open)
 
@@ -136,8 +162,8 @@ class Map:
         loc = end
         while loc != start:
             route.append(loc)
+            (x,y) = loc
             loc = nodemap[x][y].parent.loc
 
         route.reverse()
         return route
-            
