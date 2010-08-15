@@ -2,6 +2,7 @@ import Entity
 import random
 import Jobs
 import Block
+import Routing
 
 r = random.Random()
 
@@ -41,12 +42,16 @@ class Imp(Entity.Entity):
                 return
             self.t -= self.routeSpeed
 
-            if len(self.route) > 1:
-                self.moveTo(self.route[0])
-                self.route = self.route[1:]
+            if self.route.route == None:
+                # Still waiting for the route to be calculated
+                return
+
+            if len(self.route.route) > 1:
+                self.moveTo(self.route.route[0])
+                self.route.route = self.route.route[1:]
             else:
                 if self.job.type == Jobs.EXCAVATE:
-                    (x,y) = self.route[0]
+                    (x,y) = self.route.route[0]
                     self.map.data[x][y] = Block.DirtFloor(self.map.appearance)
                     for dx in range(-3,4):
                         for dy in range(-3,4):
@@ -69,6 +74,6 @@ class Imp(Entity.Entity):
 
     def takeJob(self, job):
         self.job = Jobs.manager.takeJob(job)
-        self.route = self.map.route(self.location, self.job.location)
+        self.route = Routing.Route(self.location, self.job.location, self.map)
         print "Taking job %s at %s" % (self.job.description, self.job.location)
 
