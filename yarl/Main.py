@@ -193,12 +193,11 @@ class YARL:
         if not self.map.data[x][y].visibility > 1:
             return
 
-        self.map.data[x][y].highlight = not self.map.data[x][y].highlight
-        if self.map.data[x][y].highlight:
-            Jobs.manager.newJob(Jobs.EXCAVATE, position)
+        job = Jobs.manager.popJobOfTypeAt(Jobs.EXCAVATE, position)
+        if job != None:
+            job.cancelled = True
         else:
-            Jobs.manager.popJobOfTypeAt(Jobs.EXCAVATE, position)
-        
+            Jobs.manager.newJob(Jobs.EXCAVATE, position)
 
     def handleKey(self, key):
         if key == controls["quit"]:

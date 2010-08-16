@@ -10,6 +10,10 @@ SMOOTH_WALL     = 0x04 | BLOCK_BASE
 
 LAVA_MOAT       = 0x80 | BLOCK_BASE
 
+HIGHLIGHT_NONE  = 0
+HIGHLIGHT_SOLID  = 1
+HIGHLIGHT_FLASH = 2
+
 class Block:
     def __init__(self, type, description, appearance, passable = False, jobs = []):
         self.type = type
@@ -17,7 +21,6 @@ class Block:
         self.description = description
         self.appearance = {}
         self.visibility = 0
-        self.highlight = False
         self.entities = []
         self.jobsAllowed = jobs
         appearance(self)
