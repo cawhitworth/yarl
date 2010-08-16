@@ -18,6 +18,7 @@ class Imp(Entity.Entity):
         self.wanderSpeed = 250
         self.routeSpeed = 100
         self.digSpeed = 250
+        self.roughWallSpeed = 250
         self.job = None
         self.route = None
         self.status = IDLE
@@ -76,6 +77,12 @@ class Imp(Entity.Entity):
                     return
                 self.t = 0
                 self.excavate(self.route.route[0])
+            elif self.job.type == Jobs.ROUGH_WALL:
+                self.t += time
+                if self.t < self.roughWallSpeed:
+                    return
+                self.t = 0
+                self.roughWall(self.route.route[0])
         
         elif self.status == JOB_COMPLETE:
             Jobs.manager.jobComplete(self.job)
@@ -107,4 +114,19 @@ class Imp(Entity.Entity):
                  or yy < 0 or yy > self.map.size[1]:
                      continue
                 self.map.data[xx][yy].visibility = 3
+        for dx in (-1, 0, 1):
+            for dy in (-1, 0, 1):
+                xx = x + dx
+                yy = y + dy
+                if self.map.data[xx][yy].type == Block.DIRT:
+                    Jobs.manager.newJob(Jobs.ROUGH_WALL, (xx,yy))
+        self.status = JOB_COMPLETE
+
+    def roughWall(self, loc):
+        for job in Jobs.manager.jobsAt(loc):
+            if job.type == Jobs.EXCAVATE:
+                return
+        (x,y) = loc
+        self.map.data[x][y] = Block.RoughWall(self.map.appearance)
+        self.map.data[x][y].visibility = 3
         self.status = JOB_COMPLETE

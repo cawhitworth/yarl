@@ -1,4 +1,5 @@
 EXCAVATE            = 0x00
+ROUGH_WALL          = 0x01
 
 class Job:
     def __init__(self, location, type, description):
@@ -11,8 +12,13 @@ class Excavate(Job):
     def __init__(self, location):
         Job.__init__(self, location, EXCAVATE, "excavate")
 
+class RoughWall(Job):
+    def __init__(self, location):
+        Job.__init__(self, location, ROUGH_WALL, "build rough wall")
+
 jobFactory = {
-        EXCAVATE : Excavate
+        EXCAVATE : Excavate,
+        ROUGH_WALL : RoughWall
         }
 
 class Manager:
