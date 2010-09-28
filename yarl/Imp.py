@@ -119,13 +119,15 @@ class Imp(Entity.Entity):
                 xx = x + dx
                 yy = y + dy
                 if self.map.data[xx][yy].type == Block.DIRT:
-                    Jobs.manager.newJob(Jobs.ROUGH_WALL, (xx,yy))
+                    buildWall = True
+                    for job in Jobs.manager.jobsAt((xx,yy)):
+                        if job.type in (Jobs.EXCAVATE, Jobs.ROUGH_WALL):
+                            buildWall = False
+                    if buildWall:
+                        Jobs.manager.newJob(Jobs.ROUGH_WALL, (xx,yy))
         self.status = JOB_COMPLETE
 
     def roughWall(self, loc):
-        for job in Jobs.manager.jobsAt(loc):
-            if job.type == Jobs.EXCAVATE:
-                return
         (x,y) = loc
         self.map.data[x][y] = Block.RoughWall(self.map.appearance)
         self.map.data[x][y].visibility = 3
