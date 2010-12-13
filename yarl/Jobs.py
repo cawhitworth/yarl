@@ -1,3 +1,7 @@
+import Routing
+import Imp
+import Entity
+
 EXCAVATE            = 0x00
 ROUGH_WALL          = 0x01
 
@@ -26,6 +30,26 @@ class Manager:
         self.jobs = set()
         self.inProgressJobs = set()
         self.sparseJobMap = {}
+
+    def update(self, time):
+        imps = Entity.manager.getEntitiesOfType(Entity.IMP)
+        self.assignJobs(imps)
+
+    def buildJobImpPairs(self, imps):
+        pairs = [ (imp, job) for imp in imps for job in self.jobs if imp.status == Imp.IDLE]
+        pairs.sort( cmp = lambda p1, p2 : cmp( Routing.h(p1[0].location, p1[1].location), 
+                                               Routing.h(p2[0].location, p2[1].location)))
+        return pairs
+    
+    def assignJobs(self, imps):
+        pairs = self.buildJobImpPairs(imps)
+        if not pairs:
+            return
+        for (imp, job) in pairs:
+            if imp.status != Imp.IDLE:
+                continue
+            if job not in self.inProgressJobs:
+                imp.tryAssignJob(job)
 
     def newJob(self, jobType, location):
         jobClass = jobFactory[jobType]

@@ -18,6 +18,9 @@ class Manager:
     def update(self, time):
         for e in self.entities:
             e.update(time)
+            
+    def getEntitiesOfType(self, type):
+        return [e for e in self.entities if e.type == type]
 
 manager = Manager()
 

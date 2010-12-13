@@ -25,7 +25,8 @@ class Imp(Entity.Entity):
 
     def idle(self,time):
         if self.job == None:
-            self.findJob()
+            pass
+#            self.findJob()
 
         if self.job == None:
             self.t += time
@@ -84,17 +85,24 @@ class Imp(Entity.Entity):
                 self.t = 0
                 self.roughWall(self.route.route[0])
         
-        elif self.status == JOB_COMPLETE:
+        if self.status == JOB_COMPLETE:
             Jobs.manager.jobComplete(self.job)
             self.job = None
             self.route = None
             self.status = IDLE
 
+    def tryAssignJob(self, job):
+        if self.map.isRouteable(job.location):
+            self.takeJob(job)
+            self.t = 0
+            return True
+        return False
+
     def findJob(self):
-        for job in Jobs.manager.jobs:
-            if self.map.isRouteable(job.location):
-                self.takeJob(job)
-                self.t = 0
+        jobs = [ job for job in Jobs.manager.jobs ]
+        jobs.sort( cmp=lambda job1, job2 : Routing.closer(self.location, job1.location, job2.location) )                
+        for job in jobs:
+            if self.tryAssignJob(job):
                 break
 
     def takeJob(self, job):
@@ -112,7 +120,7 @@ class Imp(Entity.Entity):
                 yy = y + dy
                 if xx < 0 or xx > self.map.size[0]\
                  or yy < 0 or yy > self.map.size[1]:
-                     continue
+                    continue
                 self.map.data[xx][yy].visibility = 3
         for dx in (-1, 0, 1):
             for dy in (-1, 0, 1):

@@ -3,6 +3,11 @@ def h(loc, dest):
     # Use manhattan distances for the moment - probably suboptimal but will do
     return 1.01 * (abs(dest[0]-loc[0]) + abs(dest[1]-loc[1]))
 
+def closer(o, p1, p2):
+    d1 = h(o, p1)
+    d2 = h(o, p2)
+    return cmp(d1, d2)
+
 class Node:
     def __init__(self, loc, g, parent, end):
         self.loc = loc

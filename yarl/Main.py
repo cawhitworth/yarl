@@ -67,10 +67,12 @@ class YARL:
                 return driver
         return None
 
+
+
     def main(self):
         while self.running:
             self.clock.tick()
-            fps = self.clock.get_fps()
+
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     sys.exit()
@@ -78,34 +80,38 @@ class YARL:
                     self.handleKey(event.key)
 
             Entity.manager.update(self.clock.get_time())
+            Jobs.manager.update(self.clock.get_time())
 
             self.screen.fill(pygame.Color(0,0,0,0))
             
             self.charMap.renderMapSegment( self.screen, self.map, (0,0), self.mapRect(self.mapOrigin) )
             self.charMap.drawChar(self.cursorChar, self.screen, gridpos=self.characterPos, color=self.cursorColor)
 
-            (mapx, mapy) = map(lambda a,b:a+b, self.characterPos, self.mapOrigin)
-            y = 1
-            if self.map.data[mapx][mapy].visibility < 2:
-                self.charMap.writeString("[hidden]", self.screen, gridpos = (61,y) )
-                y += 1
-            else:
-                self.charMap.writeString(self.map.data[mapx][mapy].description,
-                        self.screen, gridpos = (61,y) )
-                y += 1
-                for entity in self.map.data[mapx][mapy].entities:
-                    self.charMap.writeString(entity.description, self.screen,
-                            gridpos = (61,y) )
-                    y += 1
-            
-            self.charMap.writeString("FPS %s" % int(fps), self.screen, gridpos=(61,24))
-            self.charMap.writeString("%s" % self.cursorMapPos, self.screen, gridpos=(61, y))
-            y+=1
-            for job in Jobs.manager.jobsAt(self.cursorMapPos):
-                self.charMap.writeString(job.description, self.screen, gridpos=(61,y))
-                y += 1
+            self.drawStats()
             
             pygame.display.flip()
+    
+    def drawStats(self):
+        fps = self.clock.get_fps()
+        mapx, mapy = map(lambda a, b:a + b, self.characterPos, self.mapOrigin)
+        y = 1
+        if self.map.data[mapx][mapy].visibility < 2:
+            self.charMap.writeString("[hidden]", self.screen, gridpos=(61, y))
+            y += 1
+        else:
+            self.charMap.writeString(self.map.data[mapx][mapy].description, self.screen, gridpos=(61, y))
+            y += 1
+            for entity in self.map.data[mapx][mapy].entities:
+                self.charMap.writeString(entity.description, self.screen, gridpos=(61, y))
+                y += 1
+        
+        self.charMap.writeString("FPS %s" % int(fps), self.screen, gridpos=(61, 24))
+        self.charMap.writeString("%s" % self.cursorMapPos, self.screen, gridpos=(61, y))
+        y += 1
+        for job in Jobs.manager.jobsAt(self.cursorMapPos):
+            self.charMap.writeString(job.description, self.screen, gridpos=(61, y))
+            y += 1
+
     
     def moveCharacter(self, direction):
         # Oh gods this is awful
