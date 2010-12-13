@@ -12,7 +12,8 @@ except:
 from settings import *
 
 class CharMap:
-    def __init__(self, file, colorKey):
+    def __init__(self, game, file, colorKey):
+        self.game = game
         self.image = pygame.image.load("data/tiles/%s" % file)
         self.size = self.image.get_size()
         self.charSize = (self.size[0]/16, self.size[1]/16)
@@ -108,12 +109,12 @@ class CharMap:
             for x in range(region[0], region[2]):
                 block = map.data[x][y]
 
-                if Jobs.manager.sparseJobMap.has_key((x,y)):
+                if self.game.jobManager.sparseJobMap.has_key((x,y)):
                     highlight = 0
-                    for job in Jobs.manager.sparseJobMap[(x,y)]:
-                        if job.type == Jobs.EXCAVATE and job in Jobs.manager.jobs:
+                    for job in self.game.jobManager.sparseJobMap[(x,y)]:
+                        if job.type == Jobs.EXCAVATE and job in self.game.jobManager.jobs:
                             highlight = 1
-                        elif job.type == Jobs.EXCAVATE and job in Jobs.manager.inProgressJobs:
+                        elif job.type == Jobs.EXCAVATE and job in self.game.jobManager.inProgressJobs:
                             highlight = 2
 
                     if highlight == 1:

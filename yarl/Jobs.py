@@ -1,38 +1,79 @@
 import Routing
 import Imp
 import Entity
+import Block
+from GameComponent import GameComponent
 
 EXCAVATE            = 0x00
 ROUGH_WALL          = 0x01
 
+        
+
+
 class Job:
-    def __init__(self, location, type, description):
+    def __init__(self, manager, location, type, description, duration):
         self.location = location
         self.type = type
         self.description = description
         self.cancelled = False
-
+        self.duration = duration
+        self.manager = manager
+        
+    def complete(self):
+        self.manager.jobComplete(self)
+        
 class Excavate(Job):
-    def __init__(self, location):
-        Job.__init__(self, location, EXCAVATE, "excavate")
+    def __init__(self, manager, location):
+        Job.__init__(self, manager, location, EXCAVATE, "excavate", 250)
+
+    def doWork(self, location):
+        (x,y) = location
+        map = self.manager.game.map
+        map.data[x][y] = Block.DirtFloor(map.appearance)
+        for dx in range(-3,4):
+            for dy in range(-3,4):
+                xx = x + dx
+                yy = y + dy
+                if xx < 0 or xx > map.size[0]\
+                 or yy < 0 or yy > map.size[1]:
+                    continue
+                map.data[xx][yy].visibility = 3
+        for dx in (-1, 0, 1):
+            for dy in (-1, 0, 1):
+                xx = x + dx
+                yy = y + dy
+                if map.data[xx][yy].type == Block.DIRT:
+                    buildWall = True
+                    for job in self.manager.jobsAt((xx,yy)):
+                        if job.type in (EXCAVATE, ROUGH_WALL):
+                            buildWall = False
+                    if buildWall:
+                        self.manager.newJob(ROUGH_WALL, (xx,yy))
 
 class RoughWall(Job):
-    def __init__(self, location):
-        Job.__init__(self, location, ROUGH_WALL, "build rough wall")
+    def __init__(self, game, location):
+        Job.__init__(self, game, location, ROUGH_WALL, "build rough wall", 250)
+
+    def doWork(self, location):
+        (x,y) = location
+        map = self.manager.game.map
+        map.data[x][y] = Block.RoughWall(map.appearance)
+        map.data[x][y].visibility = 3
 
 jobFactory = {
         EXCAVATE : Excavate,
         ROUGH_WALL : RoughWall
         }
 
-class Manager:
-    def __init__(self):
+class Manager(GameComponent):
+    def __init__(self, game):
+        GameComponent.__init__(self, game)
         self.jobs = set()
         self.inProgressJobs = set()
         self.sparseJobMap = {}
 
     def update(self, time):
-        imps = Entity.manager.getEntitiesOfType(Entity.IMP)
+        imps = self.game.entityManager.getEntitiesOfType(Entity.IMP)
         self.assignJobs(imps)
 
     def buildJobImpPairs(self, imps):
@@ -54,7 +95,7 @@ class Manager:
     def newJob(self, jobType, location):
         jobClass = jobFactory[jobType]
         location = tuple(location)
-        j = jobClass(location)
+        j = jobClass(self, location)
         self.jobs.add(j)
         if not self.sparseJobMap.has_key(location):
             self.sparseJobMap[location] = []
@@ -109,5 +150,3 @@ class Manager:
         print "Pending jobs:"
         for job in self.jobs:
             print "  %s at %s" % (job.description, job.location)
-
-manager = Manager()

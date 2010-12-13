@@ -2,9 +2,11 @@ import math
 import Block
 import Entity
 import Imp
+from GameComponent import GameComponent
 
-class Map:
-    def __init__(self, dimensions, appearance):
+class Map(GameComponent):
+    def __init__(self, game, dimensions, appearance):
+        GameComponent.__init__(self, game)
         self.size = dimensions
         self.data = [ ]
         self.appearance = appearance
@@ -13,16 +15,11 @@ class Map:
             for y in range(dimensions[1]):
                 self.data[x].append(Block.Dirt(appearance))
 
-        self.addDungeonHeart((20, 14))
-        self.imps = []
-        self.imps.append(Imp.Imp(appearance, self, (20,13)))
-        self.imps.append(Imp.Imp(appearance, self, (20,15)))
-        self.imps.append(Imp.Imp(appearance, self, (19,14)))
-        self.imps.append(Imp.Imp(appearance, self, (21,14)))
-
-
+    def update(self, time):
+        pass
+    
     def addDungeonHeart(self, location):
-        self.dungeonHeart = Entity.DungeonHeart(self.appearance, self, location)
+        self.dungeonHeart = Entity.DungeonHeart(self.game, self.appearance, location)
         
         (cx,cy) = location
 

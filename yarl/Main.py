@@ -11,10 +11,21 @@ import CharMapAppearance as Appearance
 import Map
 import Jobs
 import Entity
+import Imp
 
 class YARL:
     def __init__(self):
+        self.gameComponents = []
 
+        self.entityManager = Entity.Manager(self)
+        self.map = Map.Map(self, mapSize, Appearance.AddAppearance)        
+        self.jobManager = Jobs.Manager(self)
+        
+        self.gameComponents.append(self.entityManager)
+        self.gameComponents.append(self.map)
+        self.gameComponents.append(self.jobManager)
+        
+        
         drivers = [SDL_VIDEODRIVER]
         
         if platform.system() == "Windows":
@@ -34,13 +45,12 @@ class YARL:
             print "Unable to initialise video driver '%s' - using '%s' instead" % (SDL_VIDEODRIVER, driver)
 
         transparent = pygame.Color( transparentColor )
-        self.charMap = CharMap.CharMap(tileSet, transparent)
+        self.charMap = CharMap.CharMap(self, tileSet, transparent)
 
         self.screenSize = map(lambda x,y:x*y, self.charMap.charSize, screenSizeInTiles)
         
         self.screen = pygame.display.set_mode(self.screenSize)
 
-        self.map = Map.Map(mapSize, Appearance.AddAppearance)
         self.mapOrigin = [ 0, 0 ]
 
         self.characterPos = tuple(map(lambda x: x/2, screenSizeInTiles))
@@ -53,6 +63,14 @@ class YARL:
 
         self.running = True
         pygame.key.set_repeat(keyDelay, keyRepeat)
+
+        self.map.addDungeonHeart((20, 14))
+        self.imps = []
+        self.imps.append(Imp.Imp(self, Appearance.AddAppearance, self, (20,13)))
+        self.imps.append(Imp.Imp(self, Appearance.AddAppearance, self, (20,15)))
+        self.imps.append(Imp.Imp(self, Appearance.AddAppearance, self, (19,14)))
+        self.imps.append(Imp.Imp(self, Appearance.AddAppearance, self, (21,14)))
+
 
     def mapRect(self, origin):
         (x,y) = origin
@@ -79,8 +97,9 @@ class YARL:
                 elif event.type == pygame.KEYDOWN:
                     self.handleKey(event.key)
 
-            Entity.manager.update(self.clock.get_time())
-            Jobs.manager.update(self.clock.get_time())
+            for component in self.gameComponents:
+                component.update(self.clock.get_time())
+
 
             self.screen.fill(pygame.Color(0,0,0,0))
             
@@ -108,7 +127,7 @@ class YARL:
         self.charMap.writeString("FPS %s" % int(fps), self.screen, gridpos=(61, 24))
         self.charMap.writeString("%s" % self.cursorMapPos, self.screen, gridpos=(61, y))
         y += 1
-        for job in Jobs.manager.jobsAt(self.cursorMapPos):
+        for job in self.jobManager.jobsAt(self.cursorMapPos):
             self.charMap.writeString(job.description, self.screen, gridpos=(61, y))
             y += 1
 
@@ -199,11 +218,11 @@ class YARL:
         if not self.map.data[x][y].visibility > 1:
             return
 
-        job = Jobs.manager.popJobOfTypeAt(Jobs.EXCAVATE, position)
+        job = self.jobManager.popJobOfTypeAt(Jobs.EXCAVATE, position)
         if job != None:
             job.cancelled = True
         else:
-            Jobs.manager.newJob(Jobs.EXCAVATE, position)
+            self.jobManager.newJob(Jobs.EXCAVATE, position)
 
     def handleKey(self, key):
         if key == controls["quit"]:

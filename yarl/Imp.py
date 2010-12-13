@@ -1,7 +1,6 @@
 import Entity
 import random
 import Jobs
-import Block
 import Routing
 
 r = random.Random()
@@ -12,13 +11,11 @@ WORKING = 2
 JOB_COMPLETE = 3
 
 class Imp(Entity.Entity):
-    def __init__(self, appearance, map, location):
-        Entity.Entity.__init__(self, Entity.IMP, "imp", appearance, map, location, passable = True)
+    def __init__(self, game, appearance, map, location):
+        Entity.Entity.__init__(self, game, Entity.IMP, "imp", appearance, location, passable = True)
         self.t = 0
         self.wanderSpeed = 250
         self.routeSpeed = 100
-        self.digSpeed = 250
-        self.roughWallSpeed = 250
         self.job = None
         self.route = None
         self.status = IDLE
@@ -36,7 +33,7 @@ class Imp(Entity.Entity):
 
             direction = (r.randint(-1,1), r.randint(-1,1))
             (x,y) = map(lambda a,b:a+b, self.location, direction)
-            if self.map.data[x][y].isPassable():
+            if self.game.map.data[x][y].isPassable():
                 self.moveTo((x,y))
 
     def update(self, time):
@@ -72,27 +69,18 @@ class Imp(Entity.Entity):
                 self.t = 0
         
         elif self.status == WORKING:
-            if self.job.type == Jobs.EXCAVATE:
-                self.t += time
-                if self.t < self.digSpeed:
-                    return
-                self.t = 0
-                self.excavate(self.route.route[0])
-            elif self.job.type == Jobs.ROUGH_WALL:
-                self.t += time
-                if self.t < self.roughWallSpeed:
-                    return
-                self.t = 0
-                self.roughWall(self.route.route[0])
-        
-        if self.status == JOB_COMPLETE:
-            Jobs.manager.jobComplete(self.job)
+            self.t += time
+            if self.t < self.job.duration:
+                return
+            self.t = 0
+            self.job.doWork(self.route.route[0])
+            self.job.complete()
             self.job = None
             self.route = None
             self.status = IDLE
 
     def tryAssignJob(self, job):
-        if self.map.isRouteable(job.location):
+        if self.game.map.isRouteable(job.location):
             self.takeJob(job)
             self.t = 0
             return True
@@ -106,37 +94,7 @@ class Imp(Entity.Entity):
                 break
 
     def takeJob(self, job):
-        self.job = Jobs.manager.takeJob(job)
-        self.route = Routing.Route(self.location, self.job.location, self.map)
+        self.job = self.game.jobManager.takeJob(job)
+        self.route = Routing.Route(self.location, self.job.location, self.game.map)
         self.status = EN_ROUTE
         print "Taking job %s at %s" % (self.job.description, self.job.location)
-
-    def excavate(self, loc):
-        (x,y) = loc
-        self.map.data[x][y] = Block.DirtFloor(self.map.appearance)
-        for dx in range(-3,4):
-            for dy in range(-3,4):
-                xx = x + dx
-                yy = y + dy
-                if xx < 0 or xx > self.map.size[0]\
-                 or yy < 0 or yy > self.map.size[1]:
-                    continue
-                self.map.data[xx][yy].visibility = 3
-        for dx in (-1, 0, 1):
-            for dy in (-1, 0, 1):
-                xx = x + dx
-                yy = y + dy
-                if self.map.data[xx][yy].type == Block.DIRT:
-                    buildWall = True
-                    for job in Jobs.manager.jobsAt((xx,yy)):
-                        if job.type in (Jobs.EXCAVATE, Jobs.ROUGH_WALL):
-                            buildWall = False
-                    if buildWall:
-                        Jobs.manager.newJob(Jobs.ROUGH_WALL, (xx,yy))
-        self.status = JOB_COMPLETE
-
-    def roughWall(self, loc):
-        (x,y) = loc
-        self.map.data[x][y] = Block.RoughWall(self.map.appearance)
-        self.map.data[x][y].visibility = 3
-        self.status = JOB_COMPLETE
