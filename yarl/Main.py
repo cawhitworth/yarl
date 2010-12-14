@@ -3,6 +3,7 @@ import sys
 import os
 import platform
 import random
+import logging
 
 from settings import *
 from Colors import *
@@ -38,11 +39,11 @@ class YARL:
         driver = self.initPygame(drivers)
 
         if driver == None:
-            print "Unable to initialise a video driver"
+            logging.error("Unable to initialise a video driver")
             sys.exit()
 
         if driver != SDL_VIDEODRIVER:
-            print "Unable to initialise video driver '%s' - using '%s' instead" % (SDL_VIDEODRIVER, driver)
+            logging.warn("Unable to initialise video driver '%s' - using '%s' instead", SDL_VIDEODRIVER, driver)
 
         transparent = pygame.Color( transparentColor )
         self.charMap = CharMap.CharMap(self, tileSet, transparent)
@@ -80,7 +81,7 @@ class YARL:
     def initPygame(self, drivers):
         for driver in drivers:
             os.environ['SDL_VIDEODRIVER'] = driver
-            (ok,fail) = pygame.init()
+            (_,fail) = pygame.init()
             if fail == 0:
                 return driver
         return None
@@ -151,8 +152,6 @@ class YARL:
             # If we're going to end up in the border, we try and move the map view by 
             # how much we're the border and bounce the cursor to the border edge
 
-            mapShift = [0,0]
-
             # In left border
             if newPos[0] < mapBorder:
                 if newPos[0] < self.characterPos[0]: # Only bump if we're moving left
@@ -211,6 +210,19 @@ class YARL:
         self.characterPos = destination
         self.cursorMapPos = map(lambda a,b:a+b, self.characterPos, self.mapOrigin) 
 
+
+    def toggleJob(self, jobType, location):
+        (x,y) = location
+        if not self.map.data[x][y].visibility > 1:
+            return
+
+        job = self.jobManager.popJobOfTypeAt(jobType, location)
+
+        if job != None:
+            job.cancelled = True
+        else:
+            self.jobManager.newJob(jobType, location)
+            
     def toggleDig(self, position):
         (x,y) = position
         if not self.map.data[x][y].canHaveJob(Jobs.EXCAVATE):
@@ -223,6 +235,7 @@ class YARL:
             job.cancelled = True
         else:
             self.jobManager.newJob(Jobs.EXCAVATE, position)
+        
 
     def handleKey(self, key):
         if key == controls["quit"]:
@@ -236,9 +249,11 @@ class YARL:
         elif key == controls["right"]:
             self.moveCharacter((1,0))
         elif key == controls["excavate"]:
-            self.toggleDig(self.cursorMapPos)
+            self.toggleJob(Jobs.EXCAVATE, self.cursorMapPos)
+        elif key == controls["smooth"]:
+            self.toggleJob(Jobs.SMOOTH, self.cursorMapPos)
         elif key == controls["dumpstatus"]:
-            Jobs.manager.dump()
+            self.jobManager.dump()
 
 
 

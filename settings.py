@@ -22,6 +22,7 @@ controls = {
       "down"    : K_DOWN,
       "select"  : K_RETURN,
       "excavate": K_d,
+      "smooth"  : K_s,
       "dumpstatus": K_q,
 
       "fastmove": KMOD_LSHIFT

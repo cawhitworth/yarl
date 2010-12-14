@@ -32,16 +32,12 @@ class Block:
             passable = passable & entity.passable
         return passable
 
-    def canHaveJob(self, jobType):
-        return jobType in self.jobsAllowed
-
 class Dirt(Block):
     def __init__(self, appearance):
         Block.__init__(self,
                 DIRT,
                 "dirt",
                 appearance,
-                jobs = ( Jobs.EXCAVATE, )
         )
 
 class DirtFloor(Block):
@@ -68,7 +64,6 @@ class RoughWall(Block):
                 ROUGH_WALL,
                 "rough wall",
                 appearance,
-                jobs = ( Jobs.EXCAVATE, )
         )
 
 class SmoothWall(Block):
@@ -77,7 +72,6 @@ class SmoothWall(Block):
                 SMOOTH_WALL,
                 "smooth wall",
                 appearance,
-                jobs = ( Jobs.EXCAVATE, )
         )
 
 class LavaMoat(Block):
@@ -88,3 +82,12 @@ class LavaMoat(Block):
                 appearance,
                 passable = False
         )
+        
+factory = {
+           DIRT            : Dirt,
+           DIRT_FLOOR      : DirtFloor,
+           STONE_FLOOR     : StoneFloor,
+           ROUGH_WALL      : RoughWall,
+           SMOOTH_WALL     : SmoothWall,
+           LAVA_MOAT       : LavaMoat
+           }

@@ -2,6 +2,7 @@ import Block
 import Entity
 from Colors import *
 import random
+import logging
 
 colors = 0
 characters = 1
@@ -66,13 +67,14 @@ appearances = {
         }
     }
 
-def AddAppearance(block):
-    if not block.type in appearances.keys():
-        print "Appearance not available for '%s'" % (block.description)
-    appearance = appearances[block.type]
+def AddAppearance(renderable):
+    if not renderable.type in appearances.keys():
+        logging.warn("Appearance not available for '%s'" % (renderable.description))
+        return
+    appearance = appearances[renderable.type]
     cols = appearance[colors]
     chars = appearance[characters]
     color = cols[ r.randint(0, len(cols)-1) ]
     character = chars[ r.randint(0, len(chars)-1) ]
-    block.appearance["color"] = color
-    block.appearance["character"] = ord(character)
+    renderable.appearance["color"] = color
+    renderable.appearance["character"] = ord(character)

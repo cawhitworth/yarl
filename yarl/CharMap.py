@@ -112,9 +112,9 @@ class CharMap:
                 if self.game.jobManager.sparseJobMap.has_key((x,y)):
                     highlight = 0
                     for job in self.game.jobManager.sparseJobMap[(x,y)]:
-                        if job.type == Jobs.EXCAVATE and job in self.game.jobManager.jobs:
+                        if job in self.game.jobManager.jobs:
                             highlight = 1
-                        elif job.type == Jobs.EXCAVATE and job in self.game.jobManager.inProgressJobs:
+                        elif job in self.game.jobManager.inProgressJobs:
                             highlight = 2
 
                     if highlight == 1:

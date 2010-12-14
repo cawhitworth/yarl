@@ -3,12 +3,11 @@ import Imp
 import Entity
 import Block
 from GameComponent import GameComponent
+import logging
 
 EXCAVATE            = 0x00
 ROUGH_WALL          = 0x01
-
-        
-
+SMOOTH              = 0x02
 
 class Job:
     def __init__(self, manager, location, type, description, duration):
@@ -23,8 +22,16 @@ class Job:
         self.manager.jobComplete(self)
         
 class Excavate(Job):
+    validBlocks = ( Block.DIRT, Block.SMOOTH_WALL, Block.ROUGH_WALL )
+    
+    digTimes = { Block.DIRT : 250,
+                 Block.SMOOTH_WALL : 2000,
+                 Block.ROUGH_WALL : 1000 }
+    
     def __init__(self, manager, location):
-        Job.__init__(self, manager, location, EXCAVATE, "excavate", 250)
+        (x,y) = location
+        block = manager.game.map.data[x][y]
+        Job.__init__(self, manager, location, EXCAVATE, "excavate", self.digTimes[block.type])
 
     def doWork(self, location):
         (x,y) = location
@@ -51,8 +58,10 @@ class Excavate(Job):
                         self.manager.newJob(ROUGH_WALL, (xx,yy))
 
 class RoughWall(Job):
-    def __init__(self, game, location):
-        Job.__init__(self, game, location, ROUGH_WALL, "build rough wall", 250)
+    validBlocks = ( Block.DIRT, )
+
+    def __init__(self, manager, location):
+        Job.__init__(self, manager, location, ROUGH_WALL, "build rough wall", 1000)
 
     def doWork(self, location):
         (x,y) = location
@@ -60,9 +69,32 @@ class RoughWall(Job):
         map.data[x][y] = Block.RoughWall(map.appearance)
         map.data[x][y].visibility = 3
 
+
+class Smooth(Job):
+    validBlocks = ( Block.ROUGH_WALL, Block.DIRT_FLOOR )
+    smoothedBlock = {
+                     Block.ROUGH_WALL : ( "smooth wall", Block.SMOOTH_WALL ),
+                     Block.DIRT_FLOOR : ( "smooth floor", Block.STONE_FLOOR ) }
+
+    def __init__(self, manager, location):
+        (x,y) = location
+        block = manager.game.map.data[x][y]
+        if block.type not in self.smoothedBlock:
+            manager.jobComplete()
+        else:
+            (name, self.finalBlock) = self.smoothedBlock[block.type]
+            Job.__init__(self, manager, location, SMOOTH, name, 1000)
+
+    def doWork(self, location):
+        (x,y) = location
+        map = self.manager.game.map
+        map.data[x][y] = Block.factory[self.finalBlock](map.appearance)
+        map.data[x][y].visibility = 3
+
 jobFactory = {
         EXCAVATE : Excavate,
-        ROUGH_WALL : RoughWall
+        ROUGH_WALL : RoughWall,
+        SMOOTH : Smooth
         }
 
 class Manager(GameComponent):
@@ -74,16 +106,16 @@ class Manager(GameComponent):
 
     def update(self, time):
         imps = self.game.entityManager.getEntitiesOfType(Entity.IMP)
-        self.assignJobs(imps)
+        self._assignJobs(imps)
 
-    def buildJobImpPairs(self, imps):
+    def _buildJobImpPairs(self, imps):
         pairs = [ (imp, job) for imp in imps for job in self.jobs if imp.status == Imp.IDLE]
         pairs.sort( cmp = lambda p1, p2 : cmp( Routing.h(p1[0].location, p1[1].location), 
                                                Routing.h(p2[0].location, p2[1].location)))
         return pairs
     
-    def assignJobs(self, imps):
-        pairs = self.buildJobImpPairs(imps)
+    def _assignJobs(self, imps):
+        pairs = self._buildJobImpPairs(imps)
         if not pairs:
             return
         for (imp, job) in pairs:
@@ -94,6 +126,9 @@ class Manager(GameComponent):
 
     def newJob(self, jobType, location):
         jobClass = jobFactory[jobType]
+        (x,y) = location
+        if self.game.map.data[x][y].type not in jobClass.validBlocks:
+            return None
         location = tuple(location)
         j = jobClass(self, location)
         self.jobs.add(j)
@@ -147,6 +182,6 @@ class Manager(GameComponent):
         else:
             return self.sparseJobMap[location]
     def dump(self):
-        print "Pending jobs:"
+        logging.info("Pending jobs:")
         for job in self.jobs:
-            print "  %s at %s" % (job.description, job.location)
+            logging.info("  %s at %s", job.description, job.location)

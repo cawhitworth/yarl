@@ -1,5 +1,3 @@
-
-from settings import *
 import yarl.Main
 
 if __name__=="__main__":

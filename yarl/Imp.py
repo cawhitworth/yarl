@@ -2,6 +2,7 @@ import Entity
 import random
 import Jobs
 import Routing
+import logging
 
 r = random.Random()
 
@@ -97,4 +98,4 @@ class Imp(Entity.Entity):
         self.job = self.game.jobManager.takeJob(job)
         self.route = Routing.Route(self.location, self.job.location, self.game.map)
         self.status = EN_ROUTE
-        print "Taking job %s at %s" % (self.job.description, self.job.location)
+        logging.info( "Taking job %s at %s" % (self.job.description, self.job.location))
