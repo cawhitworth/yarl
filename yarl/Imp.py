@@ -34,7 +34,7 @@ class Imp(Entity.Entity):
 
             direction = (r.randint(-1,1), r.randint(-1,1))
             (x,y) = map(lambda a,b:a+b, self.location, direction)
-            if self.game.map.data[x][y].isPassable():
+            if self.game.map.isPassable( (x,y) ):
                 self.moveTo((x,y))
 
     def update(self, time):
@@ -52,8 +52,13 @@ class Imp(Entity.Entity):
                 self.job = None
                 self.status = IDLE
                 return
+            
+            if self.route.routeStatus == Routing.UNROUTABLE:
+                self.job = None
+                self.status = IDLE
+                return
 
-            if self.route.route == None:
+            if self.route.routeStatus == Routing.PLANNING:
                 # Still waiting for the route to be calculated
                 return
 

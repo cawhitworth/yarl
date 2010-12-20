@@ -29,33 +29,38 @@ class Excavate(Job):
                  Block.ROUGH_WALL : 1000 }
     
     def __init__(self, manager, location):
-        (x,y) = location
-        block = manager.game.map.data[x][y]
+        block = manager.game.map.block(location)
         Job.__init__(self, manager, location, EXCAVATE, "excavate", self.digTimes[block.type])
 
     def doWork(self, location):
         (x,y) = location
+        (width, height) = self.manager.game.map.size
         map = self.manager.game.map
-        map.data[x][y] = Block.DirtFloor(map.appearance)
+        
+        block = Block.DirtFloor(self.manager.game.map.appearance)
+        block.visibility = 3
+        map.setBlock(location, block)
+                
         for dx in range(-3,4):
             for dy in range(-3,4):
                 xx = x + dx
                 yy = y + dy
-                if xx < 0 or xx > map.size[0]\
-                 or yy < 0 or yy > map.size[1]:
+                if xx < 0 or xx > width or yy < 0 or yy > height:
                     continue
-                map.data[xx][yy].visibility = 3
+                map.setVisibility( (xx, yy), 3)
+                
         for dx in (-1, 0, 1):
             for dy in (-1, 0, 1):
                 xx = x + dx
                 yy = y + dy
-                if map.data[xx][yy].type == Block.DIRT:
+                if map.block( (xx,yy) ).type == Block.DIRT:
                     buildWall = True
                     for job in self.manager.jobsAt((xx,yy)):
                         if job.type in (EXCAVATE, ROUGH_WALL):
                             buildWall = False
                     if buildWall:
                         self.manager.newJob(ROUGH_WALL, (xx,yy))
+                        
 
 class RoughWall(Job):
     validBlocks = ( Block.DIRT, )
@@ -64,10 +69,11 @@ class RoughWall(Job):
         Job.__init__(self, manager, location, ROUGH_WALL, "build rough wall", 1000)
 
     def doWork(self, location):
-        (x,y) = location
         map = self.manager.game.map
-        map.data[x][y] = Block.RoughWall(map.appearance)
-        map.data[x][y].visibility = 3
+        block = Block.RoughWall(map.appearance)
+        block.visibility = 3
+
+        map.setBlock(location, block)
 
 
 class Smooth(Job):
@@ -77,8 +83,8 @@ class Smooth(Job):
                      Block.DIRT_FLOOR : ( "smooth floor", Block.STONE_FLOOR ) }
 
     def __init__(self, manager, location):
-        (x,y) = location
-        block = manager.game.map.data[x][y]
+        block = manager.game.map.block(location)
+
         if block.type not in self.smoothedBlock:
             manager.jobComplete()
         else:
@@ -88,8 +94,10 @@ class Smooth(Job):
     def doWork(self, location):
         (x,y) = location
         map = self.manager.game.map
-        map.data[x][y] = Block.factory[self.finalBlock](map.appearance)
-        map.data[x][y].visibility = 3
+        block = Block.factory[self.finalBlock](map.appearance)
+        block.visibility = 3
+        
+        map.setBlock(location, block)
 
 jobFactory = {
         EXCAVATE : Excavate,
@@ -126,8 +134,7 @@ class Manager(GameComponent):
 
     def newJob(self, jobType, location):
         jobClass = jobFactory[jobType]
-        (x,y) = location
-        if self.game.map.data[x][y].type not in jobClass.validBlocks:
+        if self.game.map.block(location).type not in jobClass.validBlocks:
             return None
         location = tuple(location)
         j = jobClass(self, location)

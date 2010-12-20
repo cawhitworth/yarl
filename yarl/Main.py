@@ -115,13 +115,13 @@ class YARL:
         fps = self.clock.get_fps()
         mapx, mapy = map(lambda a, b:a + b, self.characterPos, self.mapOrigin)
         y = 1
-        if self.map.data[mapx][mapy].visibility < 2:
+        if self.map.block( (mapx,mapy), False ).visibility < 2:
             self.charMap.writeString("[hidden]", self.screen, gridpos=(61, y))
             y += 1
         else:
-            self.charMap.writeString(self.map.data[mapx][mapy].description, self.screen, gridpos=(61, y))
+            self.charMap.writeString(self.map.block( (mapx,mapy), False).description, self.screen, gridpos=(61, y))
             y += 1
-            for entity in self.map.data[mapx][mapy].entities:
+            for entity in self.map.block( (mapx,mapy), False).entities:
                 self.charMap.writeString(entity.description, self.screen, gridpos=(61, y))
                 y += 1
         
@@ -212,8 +212,7 @@ class YARL:
 
 
     def toggleJob(self, jobType, location):
-        (x,y) = location
-        if not self.map.data[x][y].visibility > 1:
+        if not self.map.block(location).visibility > 1:
             return
 
         job = self.jobManager.popJobOfTypeAt(jobType, location)

@@ -107,7 +107,7 @@ class CharMap:
         for y in range(region[1], region[3]):
             screenX = origin[0]
             for x in range(region[0], region[2]):
-                block = map.data[x][y]
+                block = map.block( (x,y), False )
 
                 if self.game.jobManager.sparseJobMap.has_key((x,y)):
                     highlight = 0

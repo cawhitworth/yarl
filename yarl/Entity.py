@@ -39,16 +39,8 @@ class Entity:
         appearance(self)
         self.moveTo(location)
 
-    def moveTo(self, location):
-        (x,y) = self.location
-        map = self.game.map
-        block = map.data[x][y]
-        if self in block.entities:
-            block.entities.remove(self)
-        (x,y) = location
-        block = map.data[x][y]
-        block.entities.append(self)
-        self.location = location
+    def moveTo(self, newLocation):
+        self.game.map.moveEntity(self, newLocation)
 
 class DungeonHeart(Entity):
     def __init__(self, game, appearance, location):
